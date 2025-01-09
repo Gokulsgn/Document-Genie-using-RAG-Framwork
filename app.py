@@ -37,11 +37,9 @@ This chatbot is built using the Retrieval-Augmented Generation (RAG) framework, 
 
 Follow these simple steps to interact with the chatbot:
 
-1. **Enter Your API Key**: You'll need a Google API key for the chatbot to access Google's Generative AI models. Obtain your API key https://makersuite.google.com/app/apikey.
+1. **Upload Your Documents**: The system accepts multiple PDF files at once, analyzing the content to provide comprehensive insights.
 
-2. **Upload Your Documents**: The system accepts multiple PDF files at once, analyzing the content to provide comprehensive insights.
-
-3. **Ask a Question**: After processing the documents, ask any question related to the content of your uploaded documents for a precise answer.
+2. **Ask a Question**: After processing the documents, ask any question related to the content of your uploaded documents for a precise answer.
 """)
 
 # === CHANGES BEGIN ===
