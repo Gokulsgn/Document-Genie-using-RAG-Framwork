@@ -23,15 +23,15 @@ Clone this repository or download the source code to your local machine. Navigat
 
 
 ### How to Use
-Start the Application: Launch the Streamlit application by running the command:
-"-- streamlit run <path_to_script.py> --"
+- **Start the Application**: Launch the Streamlit application by running the command:
+"**streamlit run <path_to_script.py>**"
 Replace <path_to_script.py> with the path to the script file.
 
-Enter Your Google API Key: Securely enter your Google API key when prompted. This key enables the application to access Google's Generative AI models. The key can be provided either through Streamlit's secrets management or set as an environment variable.
+- **Enter Your Google API Key**: Securely enter your Google API key when prompted. This key enables the application to access Google's Generative AI models. The key can be provided either through Streamlit's secrets management or set as an environment variable.
 
-Upload PDF Documents: You can upload one or multiple PDF documents. The application will analyze the content of these documents and create a searchable vector store to respond to queries.
+- **Upload PDF Documents**: You can upload one or multiple PDF documents. The application will analyze the content of these documents and create a searchable vector store to respond to queries.
 
-Ask Questions: Once your documents are processed, you can ask any question related to the content of your uploaded documents for precise answers.
+- **Ask Questions**: Once your documents are processed, you can ask any question related to the content of your uploaded documents for precise answers.
 
 ### Technical Overview
 - **PDF Processing**: Utilizes PyPDF2 for extracting text from PDF documents.
