@@ -19,15 +19,12 @@ Document Genie is a powerful Streamlit application designed to extract and analy
 
 Clone this repository or download the source code to your local machine. Navigate to the application directory and install the required Python packages:
 
-```bash
-pip install -r requirements.txt
+"-- pip install -r requirements.txt --"
+
 
 ### How to Use
 Start the Application: Launch the Streamlit application by running the command:
-
-bash
-Copy code
-streamlit run <path_to_script.py>
+"-- streamlit run <path_to_script.py> --"
 Replace <path_to_script.py> with the path to the script file.
 
 Enter Your Google API Key: Securely enter your Google API key when prompted. This key enables the application to access Google's Generative AI models. The key can be provided either through Streamlit's secrets management or set as an environment variable.
@@ -37,11 +34,17 @@ Upload PDF Documents: You can upload one or multiple PDF documents. The applicat
 Ask Questions: Once your documents are processed, you can ask any question related to the content of your uploaded documents for precise answers.
 
 ### Technical Overview
-PDF Processing: Utilizes PyPDF2 for extracting text from PDF documents.
-Text Chunking: Employs the RecursiveCharacterTextSplitter from LangChain for dividing the extracted text into manageable chunks.
-Vector Store Creation: Uses FAISS for creating a searchable vector store from text chunks.
-Answer Generation: Leverages ChatGoogleGenerativeAI from LangChain for generating answers to user queries using the context provided by the uploaded documents.
+- **PDF Processing**: Utilizes PyPDF2 for extracting text from PDF documents.
 
+- **Text Chunking**: Employs the RecursiveCharacterTextSplitter from LangChain for dividing the extracted text into manageable chunks.
+
+- **Vector Store Creation**: Uses FAISS for creating a searchable vector store from text chunks.
+
+- **Answer Generation**: Leverages ChatGoogleGenerativeAI from LangChain for generating answers to user queries using the context provided by the uploaded documents.
+
+### Support
+
+For issues, questions, or contributions, please refer to the GitHub repository issues section or submit a pull request
 
 ### Key Adjustments:
 - **Secure API Key Input**: Clarified that the application handles the API key securely via Streamlit's secrets or environment variables.
