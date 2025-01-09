@@ -9,7 +9,6 @@ from langchain.chains.question_answering import load_qa_chain
 from langchain.prompts import PromptTemplate
 import os
 
-
 # Set website icon (favicon)
 st.set_page_config(page_title="Document Genie", layout="wide", page_icon="📝")
 
@@ -38,13 +37,25 @@ This chatbot is built using the Retrieval-Augmented Generation (RAG) framework, 
 
 Follow these simple steps to interact with the chatbot:
 
-1. **Upload Your Documents**: The system accepts multiple PDF files at once, analyzing the content to provide comprehensive insights.
+1. **Enter Your API Key**: You'll need a Google API key for the chatbot to access Google's Generative AI models. Obtain your API key https://makersuite.google.com/app/apikey.
 
-2. **Ask a Question**: After processing the documents, ask any question related to the content of your uploaded documents for a precise answer.
+2. **Upload Your Documents**: The system accepts multiple PDF files at once, analyzing the content to provide comprehensive insights.
+
+3. **Ask a Question**: After processing the documents, ask any question related to the content of your uploaded documents for a precise answer.
 """)
 
-# Retrieve the API key securely from the Streamlit secrets
-api_key = st.secrets["GOOGLE_API_KEY"]
+# === CHANGES BEGIN ===
+
+# Try to fetch the API key from `st.secrets` or environment variable.
+try:
+    api_key = st.secrets["GOOGLE_API_KEY"]
+except KeyError:
+    api_key = os.getenv("GOOGLE_API_KEY")  # Fallback to environment variable
+    if not api_key:  # Handle missing API key
+        st.error("API Key is missing. Please add it to `.streamlit/secrets.toml` or set it as an environment variable.")
+        st.stop()
+
+# === CHANGES END ===
 
 def get_pdf_text(pdf_docs):
     text = ""
@@ -91,13 +102,13 @@ def main():
 
     user_question = st.text_input("Ask a Question from the PDF Files", key="user_question")
 
-    if user_question:  # Ensure user question is provided
+    if user_question and api_key:  # Ensure API key and user question are provided
         user_input(user_question, api_key)
 
     with st.sidebar:
         st.title("Menu:")
         pdf_docs = st.file_uploader("Upload your PDF Files and Click on the Submit & Process Button", accept_multiple_files=True, key="pdf_uploader")
-        if st.button("Submit & Process", key="process_button"):  # No need to check for API key here
+        if st.button("Submit & Process", key="process_button") and api_key:  # Check if API key is provided before processing
             with st.spinner("Processing..."):
                 raw_text = get_pdf_text(pdf_docs)
                 text_chunks = get_text_chunks(raw_text)
