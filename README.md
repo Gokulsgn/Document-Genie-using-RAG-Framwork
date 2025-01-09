@@ -25,8 +25,7 @@ Clone this repository or download the source code to your local machine. Navigat
 ### How to Use
 - **Start the Application**: Launch the Streamlit application by running the command:
 
-
-"**streamlit run <path_to_script.py>**" Replace <path_to_script.py> with the path to the script file.
+   "**streamlit run <path_to_script.py>**" Replace <path_to_script.py> with the path to the script file.
 
 - **Enter Your Google API Key**: Securely enter your Google API key when prompted. This key enables the application to access Google's Generative AI models. The key can be provided either through Streamlit's secrets management or set as an environment variable.
 
