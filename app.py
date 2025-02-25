@@ -11,16 +11,12 @@ import os
 import time
 import threading
 
-# Set website icon (favicon)
+# === ✅ 1. Fix: Streamlit Config & Custom Styling ===
 st.set_page_config(page_title="Document Genie", layout="wide", page_icon="📝")
 
-# Add custom styles
 st.markdown("""
     <style>
-    h1, h2 {
-        color: #FF6F00 !important;  
-        font-weight: bold;
-    }
+    h1, h2 { color: #FF6F00 !important; font-weight: bold; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -31,19 +27,18 @@ This chatbot is built using the Retrieval-Augmented Generation (RAG) framework, 
 It processes uploaded PDF documents, creates a searchable vector store, and generates accurate answers.
 
 ## How It Works
-
 1. **Upload Your Documents** (Multiple PDFs allowed).
 2. **Ask a Question** (Query about the document).
 """)
 
-# === ✅ 1. Fix: API Key Persistence ===
-api_key = os.getenv("GOOGLE_API_KEY") or st.secrets.get("GOOGLE_API_KEY", {}).get("GOOGLE_API_KEY")
+# === ✅ 2. Fix: API Key Retrieval & Validation ===
+api_key = os.getenv("GOOGLE_API_KEY") or st.secrets.get("GOOGLE_API_KEY")
 
 if not api_key or not isinstance(api_key, str):
-    st.error("Invalid API Key format. Please check your `.streamlit/secrets.toml` or environment variables.")
+    st.error("API Key is missing or invalid. Please set GOOGLE_API_KEY in `.streamlit/secrets.toml` or as an environment variable.")
     st.stop()
 
-# === ✅ 2. Fix: Keep Streamlit Alive ===
+# === ✅ 3. Fix: Keep Streamlit Session Alive ===
 def keep_alive():
     while True:
         time.sleep(240)  # Ping every 4 minutes
@@ -51,14 +46,13 @@ def keep_alive():
 
 threading.Thread(target=keep_alive, daemon=True).start()
 
-# === ✅ 3. Helper Functions ===
-
+# === ✅ 4. Helper Functions ===
 def get_pdf_text(pdf_docs):
     text = ""
     for pdf in pdf_docs:
         pdf_reader = PdfReader(pdf)
         for page in pdf_reader.pages:
-            text += page.extract_text()
+            text += page.extract_text() or ""  # ✅ Prevents NoneType issues
     return text
 
 def get_text_chunks(text):
@@ -66,16 +60,14 @@ def get_text_chunks(text):
     return text_splitter.split_text(text)
 
 def get_vector_store(text_chunks):
-    genai.configure(api_key=str(api_key))  # ✅ Ensure API key is a string
-
+    genai.configure(api_key=api_key)  # ✅ Explicit API Key Setting
     try:
-        embeddings = GoogleGenerativeAIEmbeddings(google_api_key=str(api_key))  # ✅ Fix API Key Format
+        embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=api_key)
         vector_store = FAISS.from_texts(text_chunks, embedding=embeddings)
         vector_store.save_local("/tmp/faiss_index")
         st.success("Vector store successfully created!")
     except Exception as e:
         st.error(f"Embedding error: {e}")
-
 
 def get_conversational_chain():
     prompt_template = """
@@ -86,11 +78,11 @@ def get_conversational_chain():
     Question: \n{question}\n
     Answer:
     """
-    model = ChatGoogleGenerativeAI(model="gemini-pro", temperature=0.3, google_api_key=str(api_key))
+    model = ChatGoogleGenerativeAI(model="gemini-pro", temperature=0.3, google_api_key=api_key)
     prompt = PromptTemplate(template=prompt_template, input_variables=["context", "question"])
     return load_qa_chain(model, chain_type="stuff", prompt=prompt)
 
-# === ✅ 4. Fix: Auto-Retry API Calls ===
+# === ✅ 5. Fix: Auto-Retry API Calls ===
 def retry_api_call(api_call, max_retries=3, wait=5):
     for attempt in range(max_retries):
         try:
@@ -102,26 +94,29 @@ def retry_api_call(api_call, max_retries=3, wait=5):
     return None
 
 def user_input(user_question):
-    embeddings = GoogleGenerativeAIEmbeddings(google_api_key=str(api_key))
-    
-    # ✅ Fix: Load FAISS from Persistent Storage
-    if os.path.exists("/tmp/faiss_index"):
-        new_db = FAISS.load_local("/tmp/faiss_index", embeddings, allow_dangerous_deserialization=True)
-    else:
-        st.error("FAISS index not found. Please re-upload PDFs.")
-        return
+    try:
+        embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=api_key)
 
-    docs = new_db.similarity_search(user_question)
-    chain = get_conversational_chain()
+        if os.path.exists("/tmp/faiss_index"):
+            new_db = FAISS.load_local("/tmp/faiss_index", embeddings, allow_dangerous_deserialization=True)
+        else:
+            st.error("FAISS index not found. Please re-upload PDFs.")
+            return
 
-    response = retry_api_call(lambda: chain({"input_documents": docs, "question": user_question}, return_only_outputs=True))
+        docs = new_db.similarity_search(user_question)
+        chain = get_conversational_chain()
 
-    if response:
-        st.write("Reply: ", response["output_text"])
+        response = retry_api_call(lambda: chain({"input_documents": docs, "question": user_question}, return_only_outputs=True))
 
-# === ✅ 5. Streamlit UI ===
+        if response:
+            st.write("Reply: ", response["output_text"])
+
+    except Exception as e:
+        st.error(f"Error: {e}")
+
+# === ✅ 6. Streamlit UI ===
 def main():
-    st.header("AI Clone Chatbot 💁")
+    st.header("AI Document Chatbot 📝")
 
     user_question = st.text_input("Ask a Question from the PDF Files", key="user_question")
 
