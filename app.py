@@ -66,9 +66,17 @@ def get_text_chunks(text):
     return text_splitter.split_text(text)
 
 def get_vector_store(text_chunks):
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=api_key)
-    vector_store = FAISS.from_texts(text_chunks, embedding=embeddings)
-    vector_store.save_local("/tmp/faiss_index")  # ✅ Fix: Save FAISS to Persistent Storage
+    import google.generativeai as genai
+    genai.configure(api_key=api_key)  # ✅ Explicit API Key Setting
+
+    try:
+        embeddings = GoogleGenerativeAIEmbeddings(google_api_key=api_key)  # ✅ Removed Model Name
+        vector_store = FAISS.from_texts(text_chunks, embedding=embeddings)
+        vector_store.save_local("/tmp/faiss_index")
+        st.success("Vector store successfully created!")
+    except Exception as e:
+        st.error(f"Embedding error: {e}")
+
 
 def get_conversational_chain():
     prompt_template = """
