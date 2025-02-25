@@ -37,10 +37,10 @@ It processes uploaded PDF documents, creates a searchable vector store, and gene
 """)
 
 # === ✅ 1. Fix: API Key Persistence ===
-api_key = os.getenv("GOOGLE_API_KEY") or st.secrets.get("GOOGLE_API_KEY", {}).get("GOOGLE_API_KEY")
+api_key = os.getenv("GOOGLE_API_KEY") or st.secrets.get("GOOGLE_API_KEY")
 
-if not api_key or not isinstance(api_key, str):
-    st.error("Invalid API Key format. Please check your `.streamlit/secrets.toml` or environment variables.")
+if not api_key:
+    st.error("API Key is missing. Please add it to `.streamlit/secrets.toml` or as an environment variable.")
     st.stop()
 
 # === ✅ 2. Fix: Keep Streamlit Alive ===
@@ -66,16 +66,9 @@ def get_text_chunks(text):
     return text_splitter.split_text(text)
 
 def get_vector_store(text_chunks):
-    genai.configure(api_key=str(api_key))  # ✅ Ensure API key is a string
-
-    try:
-        embeddings = GoogleGenerativeAIEmbeddings(google_api_key=str(api_key))  # ✅ Fix API Key Format
-        vector_store = FAISS.from_texts(text_chunks, embedding=embeddings)
-        vector_store.save_local("/tmp/faiss_index")
-        st.success("Vector store successfully created!")
-    except Exception as e:
-        st.error(f"Embedding error: {e}")
-
+    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=api_key)
+    vector_store = FAISS.from_texts(text_chunks, embedding=embeddings)
+    vector_store.save_local("/tmp/faiss_index")  # ✅ Fix: Save FAISS to Persistent Storage
 
 def get_conversational_chain():
     prompt_template = """
@@ -86,7 +79,7 @@ def get_conversational_chain():
     Question: \n{question}\n
     Answer:
     """
-    model = ChatGoogleGenerativeAI(model="gemini-pro", temperature=0.3, google_api_key=str(api_key))
+    model = ChatGoogleGenerativeAI(model="gemini-pro", temperature=0.3, google_api_key=api_key)
     prompt = PromptTemplate(template=prompt_template, input_variables=["context", "question"])
     return load_qa_chain(model, chain_type="stuff", prompt=prompt)
 
@@ -102,7 +95,7 @@ def retry_api_call(api_call, max_retries=3, wait=5):
     return None
 
 def user_input(user_question):
-    embeddings = GoogleGenerativeAIEmbeddings(google_api_key=str(api_key))
+    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=api_key)
     
     # ✅ Fix: Load FAISS from Persistent Storage
     if os.path.exists("/tmp/faiss_index"):
